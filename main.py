@@ -1,7 +1,7 @@
 # Bot library
 import logging
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 
 # Get the Telegram API token
 import os
@@ -26,9 +26,24 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # New report handler
 async def new_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    buttons = [[InlineKeyboardButton('Espacio seguro', callback_data='safe')],
-               [InlineKeyboardButton('Espacio peligroso', callback_data='insecure')]]
-    await context.bot.send_message(chat_id=update.effective_chat.id, text='¿Qué tipo de reporte?', reply_markup=InlineKeyboardMarkup(buttons))
+    buttons = [[InlineKeyboardButton('Espacio seguro', callback_data='safe')], [InlineKeyboardButton('Espacio peligroso', callback_data='insecure')]]
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='¿Qué tipo de reporte?',
+        reply_markup=InlineKeyboardMarkup(buttons)
+    )
+
+
+# Pick safe or insecure report
+async def select_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    data = query.data
+    report_type = 'seguridad' if data == 'safe' else 'peligro'
+    await query.answer(text=('Ha seleccionado: Reporte de ' + report_type))
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f'Para completar el reporte de {report_type}, seleccione el ícono 📎 y posteriormente envíe la ubicación 📍 del reporte.'
+    )
 
 # Main process
 if __name__ == '__main__':
@@ -41,6 +56,9 @@ if __name__ == '__main__':
 
     # Handle 'New Report' messages
     application.add_handler(MessageHandler(filters.TEXT, new_report))
+
+    # Select which type of report
+    application.add_handler(CallbackQueryHandler(select_type))
 
     # Keep the bot listening for user input
     application.run_polling()
