@@ -1,5 +1,5 @@
 # Bot library
-from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup, constants
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 
 # Get the Telegram API token
@@ -18,7 +18,7 @@ logging.basicConfig(
 )
 
 
-# Greet user
+# Show instructions
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Get username
@@ -26,11 +26,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user.first_name
 
     # Set custom keyboard and start the convo
-    keyboard = [[KeyboardButton('Nuevo reporte 📄')]]
+    keyboard = [[KeyboardButton('📄 Nuevo reporte')]]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text='¡Hola! Puedes reportar espacios seguros o peligrosos de Monterrey por medio de este bot.', 
-        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+        text='Para enviar un reporte de *criminalidad* o *seguridad*, presiona _Nuevo reporte_, posteriormente selecciona el tipo de reporte y envía la ubicación de este mismo\.', 
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True),
+        parse_mode=constants.ParseMode.MARKDOWN_V2
     )
 
 
@@ -40,23 +41,30 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Props
     message, markup, reply = None, None, None
 
+    # Show inline menu to select the report type
     if 'Nuevo reporte' in update.message.text:
-        # Show inline menu to select the report type
         message = '¿Qué tipo de reporte?'
-        buttons = [[InlineKeyboardButton('Espacio seguro 💐', callback_data='safe')], [InlineKeyboardButton('Espacio peligroso ⚠️', callback_data='insecure')]]
+        buttons = [[InlineKeyboardButton('💐 Espacio seguro', callback_data='safe')], [InlineKeyboardButton('⚠️ Espacio peligroso', callback_data='insecure')]]
         markup = InlineKeyboardMarkup(buttons)
         reply = update.message.message_id
 
+    # Confirm 
     elif 'Aceptar' in update.message.text:
         message = 'Reporte enviado exitosamente.'
         reply = update.message.message_id
         markup = ReplyKeyboardRemove()
+        send_report()
 
+    # Deny
     elif 'Cancelar' in update.message.text:
         message = 'Reporte cancelado.'
         reply = update.message.message_id
         markup = ReplyKeyboardRemove()
+    
+    else:
+        return
 
+    # Send reply
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=message,
@@ -80,7 +88,7 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer(text=('Ha seleccionado: Reporte de ' + report_type))
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f'Para completar el reporte de {report_type}, seleccione el ícono 📎 y posteriormente envíe la ubicación 📍 del reporte.'
+        text=f'Para completar el reporte de {report_type}, seleccione el ícono 📎 y posteriormente envíe la ubicación 📌 del reporte.'
     )
 
 
@@ -96,13 +104,12 @@ async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     report_location = [latitude, longitude]
 
     # Ask for confirmation
-    keyboard = [[KeyboardButton('Aceptar 👍')], [KeyboardButton('Cancelar 👎')]]
+    keyboard = [[KeyboardButton('👍 Aceptar')], [KeyboardButton('👎 Cancelar')]]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f'Usted ha enviado un reporte de {report_type}, en la ubicación {report_location}. ¿Confirma estos datos?',
         reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     )
-    send_report()
 
 
 # Send data to DB
@@ -115,7 +122,7 @@ if __name__ == '__main__':
     # Start and set up the bot
     application = ApplicationBuilder().token(os.getenv('TOKEN')).build()
     
-    # First time use, greet the user
+    # First time use, show instructions
     application.add_handler(CommandHandler('start', start))
 
     # Handle text messages for 'New report' and confirmations
