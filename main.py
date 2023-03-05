@@ -20,8 +20,12 @@ logging.basicConfig(
 
 # Greet user
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    # Get username
     global user
     user = update.effective_user.first_name
+
+    # Set custom keyboard and start the convo
     keyboard = [[KeyboardButton('Nuevo Reporte')]]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -32,7 +36,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # New report handler
 async def new_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    buttons = [[InlineKeyboardButton('Espacio seguro', callback_data='safe')], [InlineKeyboardButton('Espacio peligroso', callback_data='insecure')]]
+
+    # Show inline menu to select the report type
+    buttons = [[InlineKeyboardButton('Espacio seguro 💐', callback_data='safe')], [InlineKeyboardButton('Espacio peligroso ⚠️', callback_data='insecure')]]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text='¿Qué tipo de reporte?',
@@ -42,10 +48,16 @@ async def new_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Pick safe or insecure report
 async def select_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    # Get inline menu option
     query = update.callback_query
     data = query.data
+
+    # Get report type
     global report_type
     report_type = 'seguridad' if data == 'safe' else 'peligro'
+
+    # Prompt user to send a location
     await query.answer(text=('Ha seleccionado: Reporte de ' + report_type))
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -55,10 +67,16 @@ async def select_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Pick report location
 async def select_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    # Get latitude and longitude
     latitude = update.message.location.latitude
     longitude = update.message.location.longitude
+
+    # Get location
     global report_location
     report_location = [latitude, longitude]
+
+    # Ask for confirmation
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f'Tu latitud es {latitude}, y longitud es {longitude}.'
