@@ -1,5 +1,4 @@
 # Bot library
-import logging
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 
@@ -8,6 +7,11 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+# Misc
+from time import time
+import logging
+
+timestamp = time()
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
@@ -16,6 +20,8 @@ logging.basicConfig(
 
 # Greet user
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global user
+    user = update.effective_user.first_name
     keyboard = [[KeyboardButton('Nuevo Reporte')]]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -38,6 +44,7 @@ async def new_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def select_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     data = query.data
+    global report_type
     report_type = 'seguridad' if data == 'safe' else 'peligro'
     await query.answer(text=('Ha seleccionado: Reporte de ' + report_type))
     await context.bot.send_message(
@@ -50,10 +57,18 @@ async def select_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def select_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     latitude = update.message.location.latitude
     longitude = update.message.location.longitude
+    global report_location
+    report_location = [latitude, longitude]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f'Tu latitud es {latitude}, y longitud es {longitude}.'
     )
+    send_report()
+
+
+# Send data to DB
+def send_report():
+    print(f'User: {user}. \nReport type: {report_type}. \nLocation: {report_location}. \nTimestamp: {timestamp}.')
 
 # Main process
 if __name__ == '__main__':
