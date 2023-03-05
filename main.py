@@ -1,6 +1,6 @@
 # Bot library
 import logging
-from telegram import Update
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
 # Get the Telegram API token
@@ -15,7 +15,12 @@ logging.basicConfig(
 
 # Greet user
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text='¡Hola! Puedes reportar espacios seguros o peligrosos por medio de este bot.')
+    keyboard = [[KeyboardButton('Nuevo Reporte')]]
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='¡Hola! Puedes reportar espacios seguros o peligrosos por medio de este bot.', 
+        reply_markup=ReplyKeyboardMarkup(keyboard)
+    )
 
 # Main process
 if __name__ == '__main__':
