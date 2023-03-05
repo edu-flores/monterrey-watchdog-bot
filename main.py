@@ -45,6 +45,16 @@ async def select_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text=f'Para completar el reporte de {report_type}, seleccione el ícono 📎 y posteriormente envíe la ubicación 📍 del reporte.'
     )
 
+
+# Pick report location
+async def select_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    latitude = update.message.location.latitude
+    longitude = update.message.location.longitude
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f'Tu latitud es {latitude}, y longitud es {longitude}.'
+    )
+
 # Main process
 if __name__ == '__main__':
 
@@ -59,6 +69,9 @@ if __name__ == '__main__':
 
     # Select which type of report
     application.add_handler(CallbackQueryHandler(select_type))
+
+    # Handle report location
+    application.add_handler(MessageHandler(filters.LOCATION, select_location))
 
     # Keep the bot listening for user input
     application.run_polling()
