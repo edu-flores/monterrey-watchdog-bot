@@ -74,3 +74,10 @@ Con estas funciones se maneja la leída y respuesta de mensajes por *Telegram*. 
 
 <br>
 
+### \_\_main__
+
+Aquí inicia el proceso principal. Los pasos que se siguen son los siguientes:
+
+1. Iniciar el bot con `ApplicationBuilder().token(os.getenv('TOKEN')).build()`. Se obtiene la variable de entorno `TOKEN`.
+2. Agregar manejadores de texto, menús y ubicación al bot, con sus respectivos métodos.
+3. Mantener el bot corriendo con `application.run_polling()`.
