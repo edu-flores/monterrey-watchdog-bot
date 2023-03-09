@@ -11,3 +11,16 @@
 1. Instalar dependencias con `pip install -r requirements.txt`.
 2. Configurar un archivo `.env` con un token de Telegram API. 
 3. Ejecutar `python main.py`.
+
+<br>
+
+## 🗂️ Explicación de archivos
+
+* **.env.example** = Plantilla a seguir para crear el archivo `.env`.
+* **.gitignore** = Configuración de git para ignorar ambientes virtuales y variables de entorno.
+* **main.py** = La codificación del Chatbot en python.
+* **README.md** = Documentación.
+* **requierements.txt** = Librerías externas utilizadas en el código.
+
+<br>
+
