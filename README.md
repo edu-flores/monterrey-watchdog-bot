@@ -26,8 +26,6 @@
 
 ## 📱 Código
 
-<br>
-
 ### General
 
 Al inicio del programa, se importan módulos de la librería `python-telegram-bot`; esta se encarga de **recibir** y **enviar** los mensajes del Chatbot.
@@ -40,15 +38,11 @@ También, se añade el módulo `logging` para tener registros de ejecución al c
 
 ### Librería "Python Telegram Bot"
 
-<br>
-
 #### Parámetros comúnes en los métodos
 
 `update`: Es un objeto que contiene información sobre la última interacción que tuvo el bot con un usuario. Este objeto contiene información como el ID del chat, el mensaje que envió el usuario, el tipo de mensaje (texto, foto, audio, etc.) y otros detalles relevantes.
 
 `context`: Es un objeto que contiene información adicional sobre la interacción actual, como por ejemplo la información del bot (su nombre de usuario, ID, etc.), información del chat (ID, tipo, etc.), información del usuario (ID, nombre, etc.) y otros datos relevantes.
-
-<br>
 
 #### Funciones adicionales
 
