@@ -58,3 +58,19 @@ También, se añade el módulo `logging` para tener registros de ejecución al c
 
 <br>
 
+### Métodos
+
+Con estas funciones se maneja la leída y respuesta de mensajes por *Telegram*. Se puede utilizar lógica de *Python* dentro de estos métodos para obtener los resultados deseados.
+
+`start`: Se obtiene la variable global *user*. El teclado se cambia a un botón para inicializar el proceso de un nuevo reporte, y se invita al usuario a comenzar.
+
+`text_handler`: Se leen todos los mensajes de texto del usuario. Dependiendo de su respuesta, se envían los mensajes necesarios. En caso de no reconocer el mensaje, no se contesta nada.
+
+`inline_handler`: Se encarga de leer la respuesta del menú entre líneas. Aquí se obtiene la variable global *report_type* para saber el tipo de reporte.
+
+`location_handler`: Se encarga de leer ubicaciones enviadas por el usuario. Aquí se obtiene la variable global *report_location* para saber la ubicación del reporte.
+
+`send_report`: Se muestra una recopilación de los datos obtenidos a lo largo de la conversación. Posteriormente, serán enviados a la base de datos.
+
+<br>
+
