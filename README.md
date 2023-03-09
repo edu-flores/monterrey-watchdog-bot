@@ -24,3 +24,17 @@
 
 <br>
 
+## 📱 Código
+
+<br>
+
+### General
+
+Al inicio del programa, se importan módulos de la librería `python-telegram-bot`; esta se encarga de **recibir** y **enviar** los mensajes del Chatbot.
+
+Las siguientes importaciones son para cargar variables de entorno. Con esto, se consigue el token para el *API* de Telegram.
+
+También, se añade el módulo `logging` para tener registros de ejecución al correr programa.
+
+<br>
+
