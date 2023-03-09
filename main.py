@@ -1,8 +1,8 @@
-# Bot library
+# Librería para el bot de Telegram
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup, constants
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 
-# Get the Telegram API token
+# Obtener el token guardado para el bot
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -18,14 +18,14 @@ logging.basicConfig(
 )
 
 
-# Show instructions
+# Desplegar instrucciones de funcionamiento al usuario
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    # Get username
+    # Conseguir el nombre del usuario
     global user
     user = update.effective_user.first_name
 
-    # Set custom keyboard and start the convo
+    # Configurar un teclado personalizado y empezar la conversación
     keyboard = [[KeyboardButton('📄 Nuevo reporte')]]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -35,36 +35,37 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# New report handler
+# Manejador de textos simples
 async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    # Props
+    # Propiedades
     message, markup, reply = None, None, None
 
-    # Show inline menu to select the report type
+    # Mostrar menú textual para seleccionar el tipo de reporte
     if 'Nuevo reporte' in update.message.text:
         message = '¿Qué tipo de reporte?'
         buttons = [[InlineKeyboardButton('💐 Espacio seguro', callback_data='safe')], [InlineKeyboardButton('⚠️ Espacio peligroso', callback_data='insecure')]]
         markup = InlineKeyboardMarkup(buttons)
         reply = update.message.message_id
 
-    # Confirm 
+    # Confirmar
     elif 'Aceptar' in update.message.text:
         message = 'Reporte enviado exitosamente.'
         reply = update.message.message_id
         markup = ReplyKeyboardRemove()
         send_report()
 
-    # Deny
+    # Denegar
     elif 'Cancelar' in update.message.text:
         message = 'Reporte cancelado.'
         reply = update.message.message_id
         markup = ReplyKeyboardRemove()
     
+    # Cualquier otro mensaje, no hacer nada
     else:
         return
 
-    # Send reply
+    # Enviar la respuesta con las propiedades necesarias
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=message,
@@ -73,18 +74,18 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# Pick safe or insecure report
+# Elegir entre reporte de seguridad o peligro
 async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    # Get inline menu option
+    # Obtener la respuesta del menu textual
     query = update.callback_query
     data = query.data
 
-    # Get report type
+    # Obtener el tipo de reporte
     global report_type
     report_type = 'seguridad' if data == 'safe' else 'peligro'
 
-    # Prompt user to send a location
+    # Solicitar al usuario a enviar una ubicación
     await query.answer(text=('Ha seleccionado: Reporte de ' + report_type))
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -92,18 +93,18 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# Pick report location
+# Elegir la ubicación del reporte
 async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    # Get latitude and longitude
+    # Obtener latitud y longitud
     latitude = update.message.location.latitude
     longitude = update.message.location.longitude
 
-    # Get location
+    # Obtener ubicación
     global report_location
     report_location = [latitude, longitude]
 
-    # Ask for confirmation
+    # Preguntar por confirmación
     keyboard = [[KeyboardButton('👍 Aceptar')], [KeyboardButton('👎 Cancelar')]]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -112,27 +113,27 @@ async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# Send data to DB
+# Enviar datos a la BD
 def send_report():
     print(f'User: {user}. \nReport type: {report_type}. \nLocation: {report_location}. \nTimestamp: {int(timestamp)}.')
 
-# Main process
+# Proceso principal
 if __name__ == '__main__':
 
-    # Start and set up the bot
+    # Inicializar y configurar el bot
     application = ApplicationBuilder().token(os.getenv('TOKEN')).build()
-    
-    # First time use, show instructions
+
+    # Mostrar instrucciones al inicio
     application.add_handler(CommandHandler('start', start))
 
-    # Handle text messages for 'New report' and confirmations
+    # Manejar mensajes de texto
     application.add_handler(MessageHandler(filters.TEXT, text_handler))
 
-    # Select which type of report
+    # Seleccionar el tipo de reporte
     application.add_handler(CallbackQueryHandler(inline_handler))
 
-    # Handle report location
+    # Manejar la ubicación del reporte
     application.add_handler(MessageHandler(filters.LOCATION, location_handler))
 
-    # Keep the bot listening for user input
+    # Mantener al bot activo y escuchando nuevas peticiones
     application.run_polling()
