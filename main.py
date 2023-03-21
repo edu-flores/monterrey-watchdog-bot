@@ -29,7 +29,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[KeyboardButton('📄 Nuevo reporte')]]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text='Para enviar un reporte de *criminalidad* o *seguridad*, presiona _Nuevo reporte_, posteriormente selecciona el tipo de reporte y envía la ubicación de este mismo\.', 
+        text='''Para enviar un reporte de *criminalidad* o *seguridad*, 
+        presiona _Nuevo reporte_, posteriormente selecciona el tipo de 
+        reporte y envía la ubicación de este mismo\.''', 
         reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True),
         parse_mode=constants.ParseMode.MARKDOWN_V2
     )
@@ -53,7 +55,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message = 'Reporte enviado exitosamente.'
         reply = update.message.message_id
         markup = ReplyKeyboardRemove()
-        send_report()
+        # send_report()
 
     # Denegar
     elif 'Cancelar' in update.message.text:
