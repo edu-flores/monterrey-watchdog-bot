@@ -141,6 +141,18 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Quitar el inline menu
     await query.edit_message_reply_markup(None)
 
+    # Mandar información extra de contacto
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=('Si gustas ponerte en contacto con nosotras\.\.\.\n'
+              '*Correo:* georregias@gmail\.com\n'
+              '*Instagram:* [@georregias](https://www.instagram.com/georregias/)\n'
+              '*Facebook:* [Georregias](https://www.facebook.com/Georregias)\n'
+              '\n'
+              '¡Envíanos un mensaje o correo y platiquemos\! 💜'),
+        parse_mode=constants.ParseMode.MARKDOWN_V2
+    )
+
 
 # Enviar datos a la BD
 def send_report():
