@@ -52,7 +52,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     # Preguntar tipo de registro
-    keyboard = [[KeyboardButton('🦺 Registro de seguridad')], [KeyboardButton('⛔ Registro de peligro')]]
+    keyboard = [[KeyboardButton('🦺 Registro de seguridad')], [KeyboardButton('⛔ Registro de criminalidad')]]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text='¿Qué tipo de registro desea enviar?',
@@ -64,25 +64,11 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Propiedades
-    message, markup, reply = None, None, None
+    message, reply, markup = None, None, None
 
-    # Mostrar menú textual para seleccionar el tipo de reporte
-    if 'Nuevo reporte' in update.message.text:
-        message = '¿Qué tipo de reporte?'
-        buttons = [[InlineKeyboardButton('💐 Espacio seguro', callback_data='safe')], [InlineKeyboardButton('⚠️ Espacio peligroso', callback_data='insecure')]]
-        markup = InlineKeyboardMarkup(buttons)
-        reply = update.message.message_id
-
-    # Confirmar
-    elif 'Aceptar' in update.message.text:
-        message = 'Reporte enviado exitosamente.'
-        reply = update.message.message_id
-        markup = ReplyKeyboardRemove()
-        # send_report()
-
-    # Denegar
-    elif 'Cancelar' in update.message.text:
-        message = 'Reporte cancelado.'
+    # Solicitar al usuario su ubicación a partir del tipo de registro
+    if 'Registro de seguridad' in update.message.text or 'Registro de criminalidad' in update.message.text:
+        message = 'Bien, ahora seleccione el ícono 📎 y posteriormente envíe la ubicación 📌 del registro.'
         reply = update.message.message_id
         markup = ReplyKeyboardRemove()
 
@@ -94,8 +80,8 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=message,
-        reply_markup=markup,
-        reply_to_message_id=reply
+        reply_to_message_id=reply,
+        reply_markup=markup
     )
 
 
