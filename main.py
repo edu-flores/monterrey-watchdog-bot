@@ -130,16 +130,16 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     data = query.data
 
-    # Obtener el tipo de reporte
-    global report_type
-    report_type = 'seguridad' if data == 'safe' else 'peligro'
-
-    # Solicitar al usuario a enviar una ubicación
-    await query.answer(text=('Ha seleccionado: Reporte de ' + report_type))
+    # Informar al usuario de su decisión de confirmación
+    accepted = data == 'accept'
+    await query.answer(text=('🕐 Procesando...'))
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f'Para completar el reporte de {report_type}, seleccione el ícono 📎 y posteriormente envíe la ubicación 📌 del reporte.'
+        text='Registro ' + ('enviado' if accepted else 'detenido') + ' exitosamente.'
     )
+
+    # Quitar el inline menu
+    await query.edit_message_reply_markup(None)
 
 
 # Enviar datos a la BD
