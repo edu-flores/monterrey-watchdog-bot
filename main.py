@@ -85,6 +85,34 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+# Manejador de ubicaciones
+async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    # Obtener latitud y longitud
+    latitude = update.message.location.latitude
+    longitude = update.message.location.longitude
+
+    # Obtener ubicación
+    global report_location
+    report_location = [latitude, longitude]
+
+    # Mostrar ubicación enviada por el usuario
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='Ubicación recibida.',
+        reply_to_message_id=update.message.message_id
+    )
+
+    # Preguntar por confirmación
+    buttons = [[InlineKeyboardButton('✅ Aceptar', callback_data='accept')], [InlineKeyboardButton('❌ Rechazar', callback_data='decline')]]
+    markup = InlineKeyboardMarkup(buttons)
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='¿Desea confirmar este registro?',
+        reply_markup=markup
+    )
+
+
 # Manejador de inline menus
 async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -101,26 +129,6 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f'Para completar el reporte de {report_type}, seleccione el ícono 📎 y posteriormente envíe la ubicación 📌 del reporte.'
-    )
-
-
-# Manejador de ubicaciones
-async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    # Obtener latitud y longitud
-    latitude = update.message.location.latitude
-    longitude = update.message.location.longitude
-
-    # Obtener ubicación
-    global report_location
-    report_location = [latitude, longitude]
-
-    # Preguntar por confirmación
-    keyboard = [[KeyboardButton('👍 Aceptar')], [KeyboardButton('👎 Cancelar')]]
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=f'Usted ha enviado un reporte de {report_type}, en la ubicación {report_location}. ¿Confirma estos datos?',
-        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     )
 
 
@@ -142,11 +150,11 @@ if __name__ == '__main__':
     # Manejar mensajes de texto
     application.add_handler(MessageHandler(filters.TEXT, text_handler))
 
-    # Manejar inline menus
-    application.add_handler(CallbackQueryHandler(inline_handler))
-
     # Manejar ubicaciones
     application.add_handler(MessageHandler(filters.LOCATION, location_handler))
+
+    # Manejar inline menus
+    application.add_handler(CallbackQueryHandler(inline_handler))
 
     # Mantener al bot activo y escuchando nuevas peticiones
     application.run_polling()
