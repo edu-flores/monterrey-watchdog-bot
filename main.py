@@ -42,6 +42,24 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+# Comenzar un nuevo registro
+async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    # Notificar al usuario del comienzo
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='Entendido, comenzemos.'
+    )
+
+    # Preguntar tipo de registro
+    keyboard = [[KeyboardButton('🦺 Registro de seguridad')], [KeyboardButton('⛔ Registro de peligro')]]
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='¿Qué tipo de registro desea enviar?',
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
+
+
 # Manejador de textos simples
 async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -133,7 +151,7 @@ if __name__ == '__main__':
     # Añadir manejadores de comandos
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('registro', register))
-    application.add_handler(CommandHandler('cancelar', cancel))
+    # application.add_handler(CommandHandler('cancelar', cancel))
 
     # Manejar mensajes de texto
     application.add_handler(MessageHandler(filters.TEXT, text_handler))
