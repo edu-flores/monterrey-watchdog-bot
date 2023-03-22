@@ -150,7 +150,8 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
               '*Facebook:* [Georregias](https://www.facebook.com/Georregias)\n'
               '\n'
               '¡Envíanos un mensaje o correo y platiquemos\! 💜'),
-        parse_mode=constants.ParseMode.MARKDOWN_V2
+        parse_mode=constants.ParseMode.MARKDOWN_V2,
+        disable_web_page_preview=True
     )
 
 
