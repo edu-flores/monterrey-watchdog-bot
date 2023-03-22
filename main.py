@@ -67,7 +67,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message = 'Reporte cancelado.'
         reply = update.message.message_id
         markup = ReplyKeyboardRemove()
-    
+
     # Cualquier otro mensaje, no hacer nada
     else:
         return
@@ -81,7 +81,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# Elegir entre reporte de seguridad o peligro
+# Manejador de inline menus
 async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Obtener la respuesta del menu textual
@@ -100,7 +100,7 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# Elegir la ubicación del reporte
+# Manejador de ubicaciones
 async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Obtener latitud y longitud
@@ -130,16 +130,18 @@ if __name__ == '__main__':
     # Inicializar y configurar el bot
     application = ApplicationBuilder().token(os.getenv('TOKEN')).build()
 
-    # Mostrar instrucciones al inicio
+    # Añadir manejadores de comandos
     application.add_handler(CommandHandler('start', start))
+    application.add_handler(CommandHandler('registro', register))
+    application.add_handler(CommandHandler('cancelar', cancel))
 
     # Manejar mensajes de texto
     application.add_handler(MessageHandler(filters.TEXT, text_handler))
 
-    # Seleccionar el tipo de reporte
+    # Manejar inline menus
     application.add_handler(CallbackQueryHandler(inline_handler))
 
-    # Manejar la ubicación del reporte
+    # Manejar ubicaciones
     application.add_handler(MessageHandler(filters.LOCATION, location_handler))
 
     # Mantener al bot activo y escuchando nuevas peticiones
