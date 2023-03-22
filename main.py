@@ -11,7 +11,6 @@ load_dotenv()
 from time import time
 import logging
 
-timestamp = time()
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
@@ -20,10 +19,6 @@ logging.basicConfig(
 
 # Desplegar instrucciones de funcionamiento al usuario
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    # Conseguir el nombre del usuario
-    global user
-    user = update.effective_user.first_name
 
     # Mostrar lista de comandos disponibles
     await context.bot.send_message(
@@ -44,6 +39,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Comenzar un nuevo registro
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    # Conseguir el nombre del usuario
+    global user
+    user = update.effective_user.first_name
 
     # Notificar al usuario del comienzo
     await context.bot.send_message(
@@ -82,6 +81,10 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply = update.message.message_id
         markup = ReplyKeyboardRemove()
 
+        # Obtener el tipo de registro
+        global record_type
+        record_type = 'seguridad' if 'Registro de seguridad' in update.message.text else 'criminalidad'
+
     # Cualquier otro mensaje, no hacer nada
     else:
         return
@@ -103,8 +106,8 @@ async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     longitude = update.message.location.longitude
 
     # Obtener ubicación
-    global report_location
-    report_location = [latitude, longitude]
+    global record_location
+    record_location = [latitude, longitude]
 
     # Mostrar ubicación enviada por el usuario
     await context.bot.send_message(
@@ -141,6 +144,10 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Quitar el inline menu
     await query.edit_message_reply_markup(None)
 
+    # Enviar datos en caso de haber aceptado
+    if accepted:
+        send_record()
+
     # Mandar información extra de contacto
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -156,8 +163,9 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # Enviar datos a la BD
-def send_report():
-    print(f'User: {user}. \nReport type: {report_type}. \nLocation: {report_location}. \nTimestamp: {int(timestamp)}.')
+def send_record():
+    timestamp = time()
+    print(f'User: {user}. \nRecord type: {record_type}. \nLocation: {record_location}. \nTimestamp: {int(timestamp)}.')
 
 # Proceso principal
 if __name__ == '__main__':
