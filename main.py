@@ -109,11 +109,20 @@ async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global record_location
     record_location = [latitude, longitude]
 
-    # Mostrar ubicación enviada por el usuario
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text='Ubicación recibida.',
         reply_to_message_id=update.message.message_id
+    )
+
+    # Mostrar datos enviados por el usuario
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=('*Resumen*\n'
+              '\n'
+             f'Tipo: _{record_type}_\n'
+             f'Ubicación: [ver mapa](https://www.google.com/maps/search/?api=1&query={latitude},{longitude})'),
+        parse_mode=constants.ParseMode.MARKDOWN_V2
     )
 
     # Preguntar por confirmación
