@@ -25,14 +25,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global user
     user = update.effective_user.first_name
 
-    # Configurar un teclado personalizado y empezar la conversación
-    keyboard = [[KeyboardButton('📄 Nuevo reporte')]]
+    # Mostrar lista de comandos disponibles
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text='''Para enviar un reporte de *criminalidad* o *seguridad*, 
-        presiona _Nuevo reporte_, posteriormente selecciona el tipo de 
-        reporte y envía la ubicación de este mismo\.''', 
-        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True),
+        text=('Te puedo ayudar a enviar un registro de _seguridad_ o _criminalidad_, '
+              'dentro del área de Monterrey\.\n'
+              '\n'
+              '*Comandos*\n'
+              '/start \- Mostrar instrucciones\n'
+              '/registro \- Comenzar un nuevo registro\n'
+              '/cancelar \- Detener registro actual\n'
+              '\n'
+              'Presiona el botón ☰ al lado izquierdo del cuadro de texto para abrir '
+              'el menú de comandos\.'),
         parse_mode=constants.ParseMode.MARKDOWN_V2
     )
 
