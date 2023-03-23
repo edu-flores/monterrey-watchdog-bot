@@ -16,11 +16,7 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-# Variables para mantener la continuidad
-initialized = False
-selected_type = False
-sent_location = False
-
+user, record_type, record_location = None, None, None
 
 # Desplegar instrucciones de funcionamiento al usuario
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -45,10 +41,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Comenzar un nuevo registro
 async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    global initialized, user
+    global user
 
     # Si ya hay un registro en proceso, regresar
-    if initialized:
+    if user:
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=('Ya hay un registro en proceso. 😅')
@@ -67,7 +63,6 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id=update.effective_chat.id,
         text='Entendido, comenzemos.'
     )
-    initialized = True
 
     # Preguntar tipo de registro
     keyboard = [[KeyboardButton('🦺 Registro de seguridad')], [KeyboardButton('⛔ Registro de criminalidad')]]
@@ -82,8 +77,8 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Elegir mensaje
-    global initialized, selected_type, sent_location
-    message = 'Registro cancelado.' if initialized else 'No hay un registro en proceso. 🤔'
+    global user, record_type, record_location
+    message = 'Registro cancelado.' if user else 'No hay un registro en proceso. 🤔'
 
     # Notificar al usuario del cancelamiento
     await context.bot.send_message(
@@ -93,7 +88,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     # Restaurar variables globales
-    initialized, selected_type, sent_location = False, False, False
+    user, record_type, record_location = None, None, None
 
 
 # Manejador de textos simples
@@ -101,17 +96,16 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Propiedades
     message, reply, markup = None, None, None
-    global initialized, record_type, selected_type
+    global user, record_type
 
     # Solicitar al usuario su ubicación a partir del tipo de registro
-    if ('Registro de seguridad' in update.message.text or 'Registro de criminalidad' in update.message.text) and initialized:
+    if ('Registro de seguridad' in update.message.text or 'Registro de criminalidad' in update.message.text) and user:
         message = 'Bien, ahora seleccione el ícono 📎 y posteriormente envíe la ubicación 📌 del registro.'
         reply = update.message.message_id
         markup = ReplyKeyboardRemove()
 
         # Obtener el tipo de registro
         record_type = 'seguridad' if 'Registro de seguridad' in update.message.text else 'criminalidad'
-        selected_type = True
 
     # Cualquier otro mensaje, no hacer nada
     else:
@@ -129,10 +123,10 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Manejador de ubicaciones
 async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    global record_location, selected_type, sent_location
+    global record_type, record_location
 
     # Si no se ha seleccionado un tipo, regresar
-    if not selected_type:
+    if not record_type:
         return
 
     # Obtener latitud y longitud
@@ -140,7 +134,7 @@ async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     longitude = update.message.location.longitude
 
     # Obtener ubicación
-    record_location, sent_location = [latitude, longitude], True
+    record_location = [latitude, longitude]
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -204,8 +198,8 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     # Restaurar variables globales
-    global initialized, selected_type, sent_location
-    initialized, selected_type, sent_location = False, False, False
+    global user, record_type, record_location
+    user, record_type, record_location = None, None, None
 
 
 # Enviar datos a la BD
