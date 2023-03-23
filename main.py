@@ -11,58 +11,102 @@ load_dotenv()
 from time import time
 import logging
 
-timestamp = time()
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
+user, record_type, record_location = None, None, None
 
 # Desplegar instrucciones de funcionamiento al usuario
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    # Conseguir el nombre del usuario
-    global user
-    user = update.effective_user.first_name
-
-    # Configurar un teclado personalizado y empezar la conversación
-    keyboard = [[KeyboardButton('📄 Nuevo reporte')]]
+    # Mostrar lista de comandos disponibles
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text='''Para enviar un reporte de *criminalidad* o *seguridad*, 
-        presiona _Nuevo reporte_, posteriormente selecciona el tipo de 
-        reporte y envía la ubicación de este mismo\.''', 
-        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True),
+        text=('Te puedo ayudar a enviar un registro de _seguridad_ o _criminalidad_, '
+              'dentro del área de Monterrey\.\n'
+              '\n'
+              '*Comandos*\n'
+              '/start \- Mostrar instrucciones\n'
+              '/registro \- Comenzar un nuevo registro\n'
+              '/cancelar \- Detener registro actual\n'
+              '\n'
+              'Presiona el botón ☰ al lado izquierdo del cuadro de texto para abrir '
+              'el menú de comandos\.'),
         parse_mode=constants.ParseMode.MARKDOWN_V2
     )
+
+
+# Comenzar un nuevo registro
+async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    global user
+
+    # Si ya hay un registro en proceso, regresar
+    if user:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=('Ya hay un registro en proceso. 😅')
+        )
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=('Para cancelar el registro actual, use el comando /cancelar.')
+        )
+        return
+
+    # Conseguir el nombre del usuario
+    user = update.effective_user.first_name
+
+    # Notificar al usuario del comienzo
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='Entendido, comenzemos.'
+    )
+
+    # Preguntar tipo de registro
+    keyboard = [[KeyboardButton('🦺 Registro de seguridad')], [KeyboardButton('⛔ Registro de criminalidad')]]
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='¿Qué tipo de registro desea enviar?',
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
+
+
+# Detener registro actual
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    # Elegir mensaje
+    global user, record_type, record_location
+    message = 'Registro cancelado.' if user else 'No hay un registro en proceso. 🤔'
+
+    # Notificar al usuario del cancelamiento
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=message,
+        reply_markup=ReplyKeyboardRemove()
+    )
+
+    # Restaurar variables globales
+    user, record_type, record_location = None, None, None
 
 
 # Manejador de textos simples
 async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Propiedades
-    message, markup, reply = None, None, None
+    message, reply, markup = None, None, None
+    global user, record_type
 
-    # Mostrar menú textual para seleccionar el tipo de reporte
-    if 'Nuevo reporte' in update.message.text:
-        message = '¿Qué tipo de reporte?'
-        buttons = [[InlineKeyboardButton('💐 Espacio seguro', callback_data='safe')], [InlineKeyboardButton('⚠️ Espacio peligroso', callback_data='insecure')]]
-        markup = InlineKeyboardMarkup(buttons)
-        reply = update.message.message_id
-
-    # Confirmar
-    elif 'Aceptar' in update.message.text:
-        message = 'Reporte enviado exitosamente.'
+    # Solicitar al usuario su ubicación a partir del tipo de registro
+    if ('Registro de seguridad' in update.message.text or 'Registro de criminalidad' in update.message.text) and user:
+        message = 'Bien, ahora seleccione el ícono 📎 y posteriormente envíe la ubicación 📌 del registro.'
         reply = update.message.message_id
         markup = ReplyKeyboardRemove()
-        # send_report()
 
-    # Denegar
-    elif 'Cancelar' in update.message.text:
-        message = 'Reporte cancelado.'
-        reply = update.message.message_id
-        markup = ReplyKeyboardRemove()
-    
+        # Obtener el tipo de registro
+        record_type = 'seguridad' if 'Registro de seguridad' in update.message.text else 'criminalidad'
+
     # Cualquier otro mensaje, no hacer nada
     else:
         return
@@ -71,53 +115,97 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=message,
-        reply_markup=markup,
-        reply_to_message_id=reply
+        reply_to_message_id=reply,
+        reply_markup=markup
     )
 
 
-# Elegir entre reporte de seguridad o peligro
-async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    # Obtener la respuesta del menu textual
-    query = update.callback_query
-    data = query.data
-
-    # Obtener el tipo de reporte
-    global report_type
-    report_type = 'seguridad' if data == 'safe' else 'peligro'
-
-    # Solicitar al usuario a enviar una ubicación
-    await query.answer(text=('Ha seleccionado: Reporte de ' + report_type))
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=f'Para completar el reporte de {report_type}, seleccione el ícono 📎 y posteriormente envíe la ubicación 📌 del reporte.'
-    )
-
-
-# Elegir la ubicación del reporte
+# Manejador de ubicaciones
 async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    global record_type, record_location
+
+    # Si no se ha seleccionado un tipo, regresar
+    if not record_type:
+        return
 
     # Obtener latitud y longitud
     latitude = update.message.location.latitude
     longitude = update.message.location.longitude
 
     # Obtener ubicación
-    global report_location
-    report_location = [latitude, longitude]
+    record_location = [latitude, longitude]
 
-    # Preguntar por confirmación
-    keyboard = [[KeyboardButton('👍 Aceptar')], [KeyboardButton('👎 Cancelar')]]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f'Usted ha enviado un reporte de {report_type}, en la ubicación {report_location}. ¿Confirma estos datos?',
-        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+        text='Ubicación recibida.',
+        reply_to_message_id=update.message.message_id
+    )
+
+    # Mostrar datos enviados por el usuario
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=('*Resumen*\n'
+              '\n'
+             f'Tipo: _{record_type}_\n'
+             f'Ubicación: [ver mapa](https://www.google.com/maps/search/?api=1&query={latitude},{longitude})'),
+        parse_mode=constants.ParseMode.MARKDOWN_V2
+    )
+
+    # Preguntar por confirmación
+    buttons = [[InlineKeyboardButton('✅ Aceptar', callback_data='accept')], [InlineKeyboardButton('❌ Rechazar', callback_data='decline')]]
+    markup = InlineKeyboardMarkup(buttons)
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='¿Desea confirmar este registro?',
+        reply_markup=markup
     )
 
 
+# Manejador de inline menus
+async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    # Obtener la respuesta del menu textual
+    query = update.callback_query
+    data = query.data
+
+    # Informar al usuario de su decisión de confirmación
+    accepted = data == 'accept'
+    await query.answer(text=('🕐 Procesando...'))
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='Registro ' + ('enviado' if accepted else 'detenido') + ' exitosamente.'
+    )
+
+    # Quitar el inline menu
+    await query.edit_message_reply_markup(None)
+
+    # Enviar datos en caso de haber aceptado
+    if accepted:
+        send_record()
+
+    # Mandar información extra de contacto
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=('Si gustas ponerte en contacto con nosotras\.\.\.\n'
+              '*Correo:* georregias@gmail\.com\n'
+              '*Instagram:* [@georregias](https://www.instagram.com/georregias/)\n'
+              '*Facebook:* [Georregias](https://www.facebook.com/Georregias)\n'
+              '\n'
+              '¡Envíanos un mensaje o correo y platiquemos\! 💜'),
+        parse_mode=constants.ParseMode.MARKDOWN_V2,
+        disable_web_page_preview=True
+    )
+
+    # Restaurar variables globales
+    global user, record_type, record_location
+    user, record_type, record_location = None, None, None
+
+
 # Enviar datos a la BD
-def send_report():
-    print(f'User: {user}. \nReport type: {report_type}. \nLocation: {report_location}. \nTimestamp: {int(timestamp)}.')
+def send_record():
+    timestamp = time()
+    print(f'User: {user}. \nRecord type: {record_type}. \nLocation: {record_location}. \nTimestamp: {int(timestamp)}.')
 
 # Proceso principal
 if __name__ == '__main__':
@@ -125,17 +213,19 @@ if __name__ == '__main__':
     # Inicializar y configurar el bot
     application = ApplicationBuilder().token(os.getenv('TOKEN')).build()
 
-    # Mostrar instrucciones al inicio
+    # Añadir manejadores de comandos
     application.add_handler(CommandHandler('start', start))
+    application.add_handler(CommandHandler('registro', register))
+    application.add_handler(CommandHandler('cancelar', cancel))
 
     # Manejar mensajes de texto
     application.add_handler(MessageHandler(filters.TEXT, text_handler))
 
-    # Seleccionar el tipo de reporte
-    application.add_handler(CallbackQueryHandler(inline_handler))
-
-    # Manejar la ubicación del reporte
+    # Manejar ubicaciones
     application.add_handler(MessageHandler(filters.LOCATION, location_handler))
+
+    # Manejar inline menus
+    application.add_handler(CallbackQueryHandler(inline_handler))
 
     # Mantener al bot activo y escuchando nuevas peticiones
     application.run_polling()
