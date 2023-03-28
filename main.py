@@ -2,6 +2,9 @@
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup, constants
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 
+# Librería para la conexión a la base de datos
+import pyodbc
+
 # Obtener el token guardado para el bot
 import os
 from dotenv import load_dotenv
@@ -11,10 +14,20 @@ load_dotenv()
 from time import time
 import logging
 
+# Logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
+
+# Conectar con la base de datos
+conn = pyodbc.connect("Driver={MySQL ODBC 8.0 ANSI Driver};"
+                      "Server=localhost;"
+                     f"Database={os.getenv('DATABASE')};"
+                     f"User={os.getenv('USER')};"
+                     f"Password={os.getenv('PASSWORD')};"
+                      "Port=3306;")
+cursor = conn.cursor()
 
 user, record_type, record_location = None, None, None
 
@@ -204,8 +217,15 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Enviar datos a la BD
 def send_record():
-    timestamp = time()
-    print(f'User: {user}. \nRecord type: {record_type}. \nLocation: {record_location}. \nTimestamp: {int(timestamp)}.')
+
+    # Traer el cursor de la BD
+    global cursor, conn, record_type, record_location
+
+    # Insertar datos obtenidos
+    cursor.execute('INSERT INTO record (type, location, time) VALUES (?, ?, ?)', (record_type, (str(record_location[0]) + ', ' + str(record_location[1])), str(int(time()))))
+    conn.commit()
+
+    # print(f'User: {user}. \nRecord type: {record_type}. \nLocation: {record_location}. \nTimestamp: {int(timestamp)}.')
 
 # Proceso principal
 if __name__ == '__main__':
@@ -229,3 +249,6 @@ if __name__ == '__main__':
 
     # Mantener al bot activo y escuchando nuevas peticiones
     application.run_polling()
+
+    # Cerrar conexión a la base de datos al terminar
+    conn.close()
