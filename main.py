@@ -217,8 +217,15 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Enviar datos a la BD
 def send_record():
-    timestamp = time()
-    print(f'User: {user}. \nRecord type: {record_type}. \nLocation: {record_location}. \nTimestamp: {int(timestamp)}.')
+
+    # Traer el cursor de la BD
+    global cursor, conn, record_type, record_location
+
+    # Insertar datos obtenidos
+    cursor.execute('INSERT INTO record (type, location, time) VALUES (?, ?, ?)', (record_type, (str(record_location[0]) + ', ' + str(record_location[1])), str(int(time()))))
+    conn.commit()
+
+    # print(f'User: {user}. \nRecord type: {record_type}. \nLocation: {record_location}. \nTimestamp: {int(timestamp)}.')
 
 # Proceso principal
 if __name__ == '__main__':
