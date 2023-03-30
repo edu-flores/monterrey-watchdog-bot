@@ -3,7 +3,7 @@ from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardR
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 
 # Librería para la conexión a la base de datos
-import pyodbc
+import mariadb
 
 # Obtener el token guardado para el bot
 import os
@@ -21,13 +21,17 @@ logging.basicConfig(
 )
 
 # Conectar con la base de datos
-conn = pyodbc.connect("Driver={MySQL ODBC 8.0 ANSI Driver};"
-                      "Server=localhost;"
-                     f"Database={os.getenv('DATABASE')};"
-                     f"User={os.getenv('USER')};"
-                     f"Password={os.getenv('PASSWORD')};"
-                      "Port=3306;")
-cursor = conn.cursor()
+try:
+    conn = mariadb.connect(
+        user=f"{os.getenv('USER')}",
+        password=f"{os.getenv('PASSWORD')}",
+        host="localhost",
+        port=int(os.getenv('PORT')),
+        database=f"{os.getenv('DATABASE')}"
+    )
+    cursor = conn.cursor()
+except mariadb.Error as e:
+    print(f'Error al conectarse a la base de datos: {e}')
 
 user, record_type, record_location = None, None, None
 
