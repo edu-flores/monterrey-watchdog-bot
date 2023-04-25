@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Misc
-from time import time
+from time import strftime
 import logging
 
 # Logging
@@ -186,8 +186,12 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     data = query.data
 
-    # Informar al usuario de su decisión de confirmación
+    # Enviar datos en caso de haber aceptado
     accepted = data == 'accept'
+    if accepted:
+        send_record()
+
+    # Informar al usuario de su decisión de confirmación
     await query.answer(text=('🕐 Procesando...'))
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -196,10 +200,6 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Quitar el inline menu
     await query.edit_message_reply_markup(None)
-
-    # Enviar datos en caso de haber aceptado
-    if accepted:
-        send_record()
 
     # Mandar información extra de contacto
     await context.bot.send_message(
@@ -226,10 +226,8 @@ def send_record():
     global cursor, conn, record_type, record_location
 
     # Insertar datos obtenidos
-    cursor.execute('INSERT INTO record (type, location, time) VALUES (?, ?, ?)', (record_type, (str(record_location[0]) + ', ' + str(record_location[1])), str(int(time()))))
+    cursor.execute('INSERT INTO record (type, location, time) VALUES (?, ?, ?)', (record_type, (str(record_location[0]) + ', ' + str(record_location[1])), strftime('%Y-%m-%d %H:%M:%S')))
     conn.commit()
-
-    # print(f'User: {user}. \nRecord type: {record_type}. \nLocation: {record_location}. \nTimestamp: {int(timestamp)}.')
 
 # Proceso principal
 if __name__ == '__main__':
