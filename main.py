@@ -23,11 +23,11 @@ logging.basicConfig(
 # Conectar con la base de datos
 try:
     conn = mariadb.connect(
-        user=f"{os.getenv('USER')}",
-        password=f"{os.getenv('PASSWORD')}",
+        user=os.getenv('USER'),
+        password=os.getenv('PASSWORD'),
         host="localhost",
         port=int(os.getenv('PORT')),
-        database=f"{os.getenv('DATABASE')}"
+        database=os.getenv('DATABASE')
     )
     cursor = conn.cursor()
 except mariadb.Error as e:
