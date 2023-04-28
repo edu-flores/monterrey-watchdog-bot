@@ -25,7 +25,7 @@ try:
     conn = mariadb.connect(
         user=os.getenv('USER'),
         password=os.getenv('PASSWORD'),
-        host="localhost",
+        host='localhost',
         port=int(os.getenv('PORT')),
         database=os.getenv('DATABASE')
     )
@@ -41,7 +41,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Mostrar lista de comandos disponibles
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=('Te puedo ayudar a enviar un registro de _seguridad_ o _criminalidad_, '
+        text=('Te puedo ayudar a enviar un registro de algún espacio _seguro_ o _inseguro_, '
               'dentro del área de Monterrey\.\n'
               '\n'
               '*Comandos*\n'
@@ -82,7 +82,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     # Preguntar tipo de registro
-    keyboard = [[KeyboardButton('🦺 Registro de seguridad')], [KeyboardButton('⛔ Registro de criminalidad')]]
+    keyboard = [[KeyboardButton('🦺 Espacio seguro')], [KeyboardButton('🚨 Espacio inseguro')]]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text='¿Qué tipo de registro desea enviar?',
@@ -116,13 +116,13 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global user, record_type
 
     # Solicitar al usuario su ubicación a partir del tipo de registro
-    if ('Registro de seguridad' in update.message.text or 'Registro de criminalidad' in update.message.text) and user:
+    if ('Espacio seguro' in update.message.text or 'Espacio inseguro' in update.message.text) and user:
         message = 'Bien, ahora seleccione el ícono 📎 y posteriormente envíe la ubicación 📌 del registro.'
         reply = update.message.message_id
         markup = ReplyKeyboardRemove()
 
         # Obtener el tipo de registro
-        record_type = 'seguridad' if 'Registro de seguridad' in update.message.text else 'criminalidad'
+        record_type = 'seguro' if 'Espacio seguro' in update.message.text else 'inseguro'
 
     # Cualquier otro mensaje, no hacer nada
     else:
