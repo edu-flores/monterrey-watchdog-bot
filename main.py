@@ -204,12 +204,12 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Mandar información extra de contacto
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=('Si gustas ponerte en contacto con nosotras\.\.\.\n'
-              '*Correo:* georregias@gmail\.com\n'
-              '*Instagram:* [@georregias](https://www.instagram.com/georregias/)\n'
-              '*Facebook:* [Georregias](https://www.facebook.com/Georregias)\n'
+        text=('Te enviamos un par de recursos útiles\.\.\.\n'
+              '*Marca 070:* Si conoces o vives algún caso de violencia de género y necesitas orientación jurídica o psicológica\n'
+              '*Marca 9\-1\-1:* Si eres o conoces a una mujer en situación de riesgo\n'
+              '*Más información:* [Click aquí](https://www.nl.gob.mx/campanas/lineas-de-atencion-y-orientacion-para-mujeres-violentadas)\n'
               '\n'
-              '¡Envíanos un mensaje o correo y platiquemos\! 💜'),
+              '¡Gracias\! 💜'),
         parse_mode=constants.ParseMode.MARKDOWN_V2,
         disable_web_page_preview=True
     )
